@@ -1,21 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>LiveKit Voice Agent Test</title>
+  <title>LiveKit Agent Test</title>
   <script type="module">
     import { AgentClient, AudioTrack } from "https://cdn.jsdelivr.net/npm/@livekit/agents-browser/+esm";
 
-    let client;
-
     async function startAgent() {
-      const tokenResponse = await fetch("/api/token");
-      const { token } = await tokenResponse.json();
+      try {
+        // Get token + ws URL from backend
+        const response = await fetch("/api/token");
+        const { token, wsUrl } = await response.json();
 
-      client = new AgentClient();
-      const { track } = await client.connect(token);
+        if (!token || !wsUrl) {
+          alert("Token API failed. Check backend logs.");
+          return;
+        }
 
-      const audio = document.getElementById("audio");
-      AudioTrack.attach(track, audio);
+        const client = new AgentClient();
+
+        // Connect to LiveKit Agent
+        const room = await client.connect(token, { url: wsUrl });
+
+        console.log("Connected to agent:", room);
+
+        // Get audio track
+        const audioTrack = room.agentAudioTrack;
+        const audioElement = document.getElementById("audio");
+
+        if (audioTrack) {
+          AudioTrack.attach(audioTrack, audioElement);
+        } else {
+          alert("Agent connected but no audio received.");
+        }
+
+      } catch (err) {
+        console.error("Connection error:", err);
+        alert("Failed to connect to the agent.");
+      }
     }
 
     window.startAgent = startAgent;
@@ -25,17 +46,17 @@
     body {
       background: #111;
       color: #eee;
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       text-align: center;
       padding-top: 120px;
     }
     button {
       background: #22c55e;
+      padding: 14px 28px;
       color: #fff;
-      padding: 14px 30px;
-      border-radius: 8px;
-      border: none;
       font-size: 20px;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
     }
     button:hover {
@@ -43,10 +64,12 @@
     }
   </style>
 </head>
+
 <body>
   <h1>🎤 LiveKit Agent Test</h1>
-  <p>Click to talk to your LiveKit agent</p>
+  <p>Click below to talk to your LiveKit agent</p>
   <button onclick="startAgent()">Start Agent</button>
+
   <audio id="audio" autoplay></audio>
 </body>
 </html>
