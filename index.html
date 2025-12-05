@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LiveKit Voice Agent Test</title>
+  <script type="module">
+    import { AgentClient, AudioTrack } from "https://cdn.jsdelivr.net/npm/@livekit/agents-browser/+esm";
+
+    let client;
+
+    async function startAgent() {
+      const tokenResponse = await fetch("/api/token");
+      const { token } = await tokenResponse.json();
+
+      client = new AgentClient();
+      const { track } = await client.connect(token);
+
+      const audio = document.getElementById("audio");
+      AudioTrack.attach(track, audio);
+    }
+
+    window.startAgent = startAgent;
+  </script>
+
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: Arial;
+      text-align: center;
+      padding-top: 120px;
+    }
+    button {
+      background: #22c55e;
+      color: #fff;
+      padding: 14px 30px;
+      border-radius: 8px;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #16a34a;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎤 LiveKit Agent Test</h1>
+  <p>Click to talk to your LiveKit agent</p>
+  <button onclick="startAgent()">Start Agent</button>
+  <audio id="audio" autoplay></audio>
+</body>
+</html>
