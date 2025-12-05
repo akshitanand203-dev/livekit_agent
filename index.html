@@ -2,40 +2,26 @@
 <html>
 <head>
   <title>LiveKit Agent Test</title>
+
   <script type="module">
-    import { AgentClient, AudioTrack } from "https://cdn.jsdelivr.net/npm/@livekit/agents-browser/+esm";
+    import { AgentClient, AudioTrack } from "https://cdn.jsdelivr.net/npm/@livekit/agents@1.5.1/dist/browser/agents-browser.mjs";
 
     async function startAgent() {
       try {
-        // Get token + ws URL from backend
         const response = await fetch("/api/token");
         const { token, wsUrl } = await response.json();
 
-        if (!token || !wsUrl) {
-          alert("Token API failed. Check backend logs.");
-          return;
-        }
-
         const client = new AgentClient();
-
-        // Connect to LiveKit Agent
         const room = await client.connect(token, { url: wsUrl });
 
-        console.log("Connected to agent:", room);
-
-        // Get audio track
         const audioTrack = room.agentAudioTrack;
         const audioElement = document.getElementById("audio");
-
         if (audioTrack) {
           AudioTrack.attach(audioTrack, audioElement);
-        } else {
-          alert("Agent connected but no audio received.");
         }
-
       } catch (err) {
-        console.error("Connection error:", err);
-        alert("Failed to connect to the agent.");
+        console.error(err);
+        alert("Failed to start agent");
       }
     }
 
@@ -45,31 +31,27 @@
   <style>
     body {
       background: #111;
-      color: #eee;
-      font-family: Arial, sans-serif;
+      color: white;
       text-align: center;
-      padding-top: 120px;
+      padding-top: 100px;
+      font-family: Arial, sans-serif;
     }
     button {
       background: #22c55e;
-      padding: 14px 28px;
-      color: #fff;
-      font-size: 20px;
+      padding: 15px 30px;
+      font-size: 22px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-    }
-    button:hover {
-      background: #16a34a;
+      color: white;
     }
   </style>
 </head>
 
 <body>
   <h1>🎤 LiveKit Agent Test</h1>
-  <p>Click below to talk to your LiveKit agent</p>
+  <p>Click to talk to your agent</p>
   <button onclick="startAgent()">Start Agent</button>
-
   <audio id="audio" autoplay></audio>
 </body>
 </html>
