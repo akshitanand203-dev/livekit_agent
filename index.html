@@ -1,27 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>LiveKit Agent Test</title>
+  <title>LiveKit Voice Agent Test</title>
 
   <script type="module">
-    import { AgentClient, AudioTrack } from "https://cdn.jsdelivr.net/npm/@livekit/agents@1.5.1/dist/browser/agents-browser.mjs";
+    import { Room, RemoteParticipant, RemoteTrack, RemoteTrackPublication } 
+      from "https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.esm.js";
 
     async function startAgent() {
       try {
-        const response = await fetch("/api/token");
-        const { token, wsUrl } = await response.json();
+        // Get token + URL from backend
+        const res = await fetch("/api/token");
+        const { token, wsUrl } = await res.json();
 
-        const client = new AgentClient();
-        const room = await client.connect(token, { url: wsUrl });
+        const room = new Room({
+          adaptiveStream: true,
+          dynacast: true
+        });
 
-        const audioTrack = room.agentAudioTrack;
-        const audioElement = document.getElementById("audio");
-        if (audioTrack) {
-          AudioTrack.attach(audioTrack, audioElement);
-        }
+        room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+          if (track.kind === "audio") {
+            const audio = document.getElementById("audio");
+            track.attach(audio);
+          }
+        });
+
+        await room.connect(wsUrl, token);
+        console.log("Connected to room:", room.name);
+
       } catch (err) {
         console.error(err);
-        alert("Failed to start agent");
+        alert("Failed to connect to agent");
       }
     }
 
@@ -50,8 +59,10 @@
 
 <body>
   <h1>🎤 LiveKit Agent Test</h1>
-  <p>Click to talk to your agent</p>
+  <p>Click to hear your agent</p>
+
   <button onclick="startAgent()">Start Agent</button>
   <audio id="audio" autoplay></audio>
+
 </body>
 </html>

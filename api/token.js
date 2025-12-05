@@ -8,22 +8,16 @@ export default function handler(req, res) {
     const agentId = process.env.LIVEKIT_AGENT_ID;
 
     if (!apiKey || !apiSecret || !wsUrl || !agentId) {
-      return res.status(500).json({
-        error: "Missing environment variables",
-        received: { apiKey, apiSecret, wsUrl, agentId }
-      });
+      return res.status(500).json({ error: "Missing env vars" });
     }
 
-    // Create access token
     const token = new AccessToken(apiKey, apiSecret, {
       identity: "tester-" + Math.random().toString(36).slice(2),
     });
 
-    // Correct grant structure for LiveKit Agents
     token.addGrant({
-      room: agentId,     // allow joining this agent room
-      roomJoin: true,    // allow connecting to room
-      agent: true        // allow agent mode
+      room: agentId,      // join the agent's room
+      roomJoin: true
     });
 
     return res.status(200).json({
@@ -32,7 +26,7 @@ export default function handler(req, res) {
     });
 
   } catch (err) {
-    console.error("Token generation error:", err);
+    console.error("Token error:", err);
     return res.status(500).json({ error: err.message });
   }
 }
